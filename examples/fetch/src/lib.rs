@@ -32,8 +32,7 @@ pub struct Signature {
     pub email: String,
 }
 
-#[wasm_bindgen]
-pub async fn run(repo: String) -> Result<JsValue, JsValue> {
+async fn get_repo(repo: String) -> Result<JsValue, JsValue> {
     let mut opts = RequestInit::new();
     opts.method("GET");
     opts.mode(RequestMode::Cors);
@@ -49,12 +48,29 @@ pub async fn run(repo: String) -> Result<JsValue, JsValue> {
     let window = web_sys::window().unwrap();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
 
-    // `resp_value` is a `Response` object.
     assert!(resp_value.is_instance_of::<Response>());
     let resp: Response = resp_value.dyn_into().unwrap();
 
     // Convert this other `Promise` into a rust `Future`.
     let json = JsFuture::from(resp.json()?).await?;
+
+    Ok(json)
+}
+
+// #[wasm_bindgen]
+// pub async fn run_async(repo: String) -> Result<JsValue, JsValue> {
+//     let json = get_repo(repo).await?;
+
+//     // Use serde to parse the JSON into a struct.
+//     let branch_info: Branch = json.into_serde().unwrap();
+
+//     // Send the `Branch` struct back to JS as an `Object`.
+//     Ok(JsValue::from_serde(&branch_info).unwrap())
+// }
+
+#[wasm_bindgen]
+pub fn run(repo: String) -> Result<JsValue, JsValue> {
+    let json = async_std::task::block_on(get_repo(repo))?;
 
     // Use serde to parse the JSON into a struct.
     let branch_info: Branch = json.into_serde().unwrap();

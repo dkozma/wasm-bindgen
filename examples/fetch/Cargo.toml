@@ -8,6 +8,7 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
+async-std = "1.10.0"
 wasm-bindgen = { version = "0.2.77", features = ["serde-serialize"]  }
 js-sys = "0.3.54"
 wasm-bindgen-futures = "0.4.27"
